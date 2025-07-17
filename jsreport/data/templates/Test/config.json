@@ -1,0 +1,5 @@
+{
+  "name": "Test",
+  "engine": "handlebars",
+  "recipe": "chrome-pdf"
+}
