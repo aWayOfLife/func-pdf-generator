@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+  <TargetFramework>net6.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <RootNamespace>func_pdf_generator</RootNamespace>
   </PropertyGroup>
@@ -20,9 +20,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="jsreport\data\**\*.*">
+    <None Include="jsreport\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
   </ItemGroup>
 
 </Project>
