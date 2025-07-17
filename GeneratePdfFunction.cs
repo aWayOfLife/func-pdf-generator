@@ -54,7 +54,7 @@ namespace GeneratePdfFunction
             _localServerStartupTask = _localWebServerReportingService.StartAsync();
         }
 
-       [FunctionName("GeneratePdfFunction")]
+        [FunctionName("GeneratePdfFunction")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "generate-pdf/{templateName}")] HttpRequest req,
             string templateName,
@@ -64,16 +64,6 @@ namespace GeneratePdfFunction
 
             await _localServerStartupTask;
 
-            var templateFolder = Path.Combine(Directory.GetCurrentDirectory(), "jsreport", "data", "templates", templateName);
-            var contentPath = Path.Combine(templateFolder, "content.handlebars");
-
-            if (!File.Exists(contentPath))
-            {
-                log.LogError($"Template content not found at path: {contentPath}");
-                return new NotFoundObjectResult("Template not found.");
-            }
-
-            string htmlTemplate = await File.ReadAllTextAsync(contentPath);
             string body = await new StreamReader(req.Body).ReadToEndAsync();
 
             object data;
@@ -83,25 +73,25 @@ namespace GeneratePdfFunction
             }
             catch (Exception ex)
             {
-                log.LogError(ex, "Failed to parse request body as JSON.");
+                log.LogError(ex, "Invalid JSON in request body.");
                 return new BadRequestObjectResult("Invalid JSON in request body.");
             }
 
-            var report = await _localWebServerReportingService.ReportingService.RenderAsync(new RenderRequest
+            try
             {
-                Template = new Template
-                {
-                    Content = htmlTemplate,
-                    Engine = Engine.Handlebars,
-                    Recipe = Recipe.ChromePdf
-                },
-                Data = data
-            });
+                var report = await _localWebServerReportingService.ReportingService.RenderByNameAsync(templateName, data);
 
-            return new FileStreamResult(report.Content, "application/pdf")
+                return new FileStreamResult(report.Content, "application/pdf")
+                {
+                    FileDownloadName = $"{templateName}.pdf"
+                };
+            }
+            catch (Exception ex)
             {
-                FileDownloadName = $"{templateName}.pdf"
-            };
+                log.LogError(ex, $"Failed to render template '{templateName}'");
+                return new NotFoundObjectResult($"Template '{templateName}' not found or failed to render.");
+            }
         }
+
     }
 }
